@@ -105,7 +105,7 @@ export default function cocochex(params: any, struct: any, required: string[] = 
     }
 
     if (typeof struct === 'undefined') {
-        throw 'Argument "struct" is required.';
+        throw new Error('Argument "struct" is required.');
     }
 
     if (typeof struct === 'function') {
@@ -114,7 +114,7 @@ export default function cocochex(params: any, struct: any, required: string[] = 
 
     if (isSchemaObject(struct)) {
         if (!isPlainObject(params)) {
-            throw 'Data schema does not match.';
+            throw new Error('Data schema does not match.');
         }
 
         for (let key of Object.keys(struct)) {
@@ -125,7 +125,7 @@ export default function cocochex(params: any, struct: any, required: string[] = 
             }
             else {
                 if (required.indexOf(keyPath) !== -1) {
-                    throw `Key "${keyPath}" is required.`;
+                    throw new Error(`Key "${keyPath}" is required.`);
                 }
 
                 const schema = struct[key];
@@ -145,7 +145,7 @@ export default function cocochex(params: any, struct: any, required: string[] = 
             const itemSchema = struct[0];
 
             if (!Array.isArray(params)) {
-                throw `Type <${getValueType(params)}> is invalid in "${_parentKey}". Expected a list.`;
+                throw new Error(`Type <${getValueType(params)}> is invalid in "${_parentKey}". Expected a list.`);
             }
 
             for (let index = 0; index < params.length; index++) {
@@ -153,14 +153,14 @@ export default function cocochex(params: any, struct: any, required: string[] = 
 
                 if (isTypeToken(itemSchema)) {
                     if (!matchesType(item, itemSchema)) {
-                        throw `Type <${getValueType(item)}> is invalid in "${_parentKey}". Expected a list of Type <${itemSchema}>.`;
+                        throw new Error(`Type <${getValueType(item)}> is invalid in "${_parentKey}". Expected a list of Type <${itemSchema}>.`);
                     }
                 }
                 else if (typeof itemSchema === 'function') {
                     params[index] = itemSchema(item);
                 }
                 else if (item !== itemSchema) {
-                    throw `Value ${stringifyValue(item)} is invalid in "${_parentKey}". Expected a list of ${stringifyValue(itemSchema)}.`;
+                    throw new Error(`Value ${stringifyValue(item)} is invalid in "${_parentKey}". Expected a list of ${stringifyValue(itemSchema)}.`);
                 }
             }
 
@@ -192,12 +192,12 @@ export default function cocochex(params: any, struct: any, required: string[] = 
                     }
 
                     if (!itemPassed && lastItemFunctionError) {
-                        throw lastItemFunctionError;
+                        throw new Error(lastItemFunctionError);
                     }
 
                     if (!itemPassed) {
                         const allowed = struct.map(describeSchema).join(', ');
-                        throw `${stringifyValue(params[index])} is invalid in "${_parentKey}". allowed types or values are: ${allowed}.`;
+                        throw new Error(`${stringifyValue(params[index])} is invalid in "${_parentKey}". allowed types or values are: ${allowed}.`);
                     }
                 }
                 passed = true;
@@ -219,14 +219,14 @@ export default function cocochex(params: any, struct: any, required: string[] = 
                 }
 
                 if (!passed && lastFunctionError) {
-                    throw lastFunctionError;
+                    throw new Error(lastFunctionError);
                 }
             }
         }
 
         if (!passed) {
             const allowed = struct.map(describeSchema).join(', ');
-            throw `${stringifyValue(params)} is invalid in "${_parentKey}". allowed types or values are: ${allowed}.`;
+            throw new Error(`${stringifyValue(params)} is invalid in "${_parentKey}". allowed types or values are: ${allowed}.`);
         }
 
         return params;
@@ -236,5 +236,5 @@ export default function cocochex(params: any, struct: any, required: string[] = 
         return params;
     }
 
-    throw `${stringifyValue(params)} is invalid in "${_parentKey}". allowed type or value is: ${describeSchema(struct)}.`;
+    throw new Error(`${stringifyValue(params)} is invalid in "${_parentKey}". allowed type or value is: ${describeSchema(struct)}.`);
 }
