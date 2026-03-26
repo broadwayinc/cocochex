@@ -258,27 +258,3 @@ const cocochex = require("cocochex");
 ```
 
 Current function signature is intentionally generic (`any`) to allow flexible schemas.
-
-## Development
-
-- Build:
-
-```bash
-npm run build
-```
-
-- Test sample:
-
-```bash
-node test.js
-```
-
-- Full test script:
-
-```bash
-npm test
-```
-
-## License
-
-ISC
