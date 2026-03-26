@@ -1,0 +1,36 @@
+{
+  "name": "cocochex",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "browser": "./dist/index.js",
+  "unpkg": "./dist/cocochex.js",
+  "jsdelivr": "./dist/cocochex.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "type": "module",
+  "scripts": {
+      "test": "npm run build && node ./test.js",
+      "typecheck": "tsc --noEmit --project tsconfig.json",
+      "build": "tsup --config tsup.config.mjs"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+      "tsup": "^8.5.0",
+      "typescript": "^5.9.3"
+  }
+}

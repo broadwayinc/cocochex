@@ -1,0 +1,14 @@
+__pycache__/
+.venv/
+
+node_modules/
+
+# Built files
+*.js
+*.js.map
+*.d.ts
+*.d.ts.map
+
+# Keep test file
+!test.js
+dist/
