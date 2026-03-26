@@ -114,7 +114,7 @@ export default function cocochex(params: any, struct: any, required: string[] = 
 
     if (isSchemaObject(struct)) {
         if (!isPlainObject(params)) {
-            throw new Error('Data schema does not match.');
+            throw new Error('Data schema does not match:\n' + JSON.stringify(params, null, 2));
         }
 
         for (let key of Object.keys(struct)) {
