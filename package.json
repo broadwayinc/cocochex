@@ -1,6 +1,6 @@
 {
   "name": "cocochex",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Tiny, dependency-free schema validator and transformer for plain JavaScript objects.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
