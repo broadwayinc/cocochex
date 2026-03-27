@@ -4,7 +4,7 @@ const COCOCHEX_VERSION =
     typeof _COCOCHEX_VERSION__ === "string" ? _COCOCHEX_VERSION__ : "0.0.0";
 
 export default function cocochex(params: any, struct: any, required: string[] = [], _parentKey: string | null = null) {
-    const typeTokens = ['string', 'number', 'boolean', 'object', 'array'];
+    const typeTokens = ['string', 'number', 'boolean', 'object', 'array', 'function', 'null', 'undefined'];
 
     function isPlainObject(value: any) {
         return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -72,6 +72,14 @@ export default function cocochex(params: any, struct: any, required: string[] = 
 
         if (schema === 'object') {
             return isPlainObject(value);
+        }
+
+        if (schema === 'null') {
+            return value === null;
+        }
+
+        if (schema === 'undefined') {
+            return typeof value === 'undefined';
         }
 
         return typeof value === schema;

@@ -49,11 +49,44 @@ runTest("[type] rejects scalar input", () => {
     );
 });
 
+runTest("[type] accepts function token", () => {
+    const result = cocochex({ check: () => null }, { check: 'function' });
+    assert(typeof result.check === "function", "Expected check to be a function");
+});
+
+runTest("[type] accepts null token", () => {
+    const result = cocochex({ check: null }, { check: 'null' });
+    assert(result.check === null, "Expected check to be null");
+});
+
+runTest("[type] accepts undefined token", () => {
+    const result = cocochex({ check: undefined }, { check: 'undefined' });
+    assert(typeof result.check === "undefined", "Expected check to be undefined");
+});
+
+runTest("[type] accepts object token for plain object", () => {
+    const result = cocochex({ check: { a: 1 } }, { check: 'object' });
+    assert(result.check.a === 1, "Expected check to be a plain object");
+});
+
+runTest("[type] rejects object token for arrays", () => {
+    expectThrow(
+        () => cocochex({ check: [] }, { check: 'object' }),
+        "allowed type or value is: Type<object>"
+    );
+});
+
+runTest("[type] accepts array token", () => {
+    const result = cocochex({ check: [1, 2, 3] }, { check: 'array' });
+    assert(Array.isArray(result.check), "Expected check to be an array");
+});
+
 runTest("[type] accepts list of matching type", () => {
     const result = cocochex({ check: ["1", "2"] }, { check: ["string"] });
     assert(Array.isArray(result.check), "Expected check to be an array");
     assert(result.check.length === 2, "Expected two items in check");
 });
+
 
 runTest("[type] rejects list with wrong item type", () => {
     expectThrow(
@@ -172,6 +205,13 @@ runTest("object schema rejects non-plain object", () => {
     expectThrow(
         () => cocochex([], { a: "number" }),
         "Data schema does not match"
+    );
+});
+
+runTest("[type] rejects null for object token", () => {
+    expectThrow(
+        () => cocochex({ check: null }, { check: 'object' }),
+        "allowed type or value is: Type<object>"
     );
 });
 

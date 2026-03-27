@@ -4,7 +4,7 @@ Tiny, dependency-free schema validator and transformer for plain JavaScript obje
 
 `cocochex` checks data against a schema and can also transform values through custom validator functions. It supports:
 
-- primitive type checks (`string`, `number`, `boolean`, `object`, `array`)
+- primitive type checks (`string`, `number`, `boolean`, `object`, `array`, `function`, `null`, `undefined`)
 - exact value matching
 - nested object schemas
 - list validation
@@ -90,11 +90,14 @@ Use one of:
 - `"boolean"`
 - `"object"` (plain object only)
 - `"array"`
+- `"function"`
+- `"null"`
+- `"undefined"`
 
 Example:
 
 ```js
-{ age: "number", name: "string" }
+{ age: "number", name: "string", onChange: "function", deletedAt: "null" }
 ```
 
 ### 2. Exact Value
