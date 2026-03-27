@@ -3,29 +3,6 @@ declare const _COCOCHEX_VERSION__: string;
 const COCOCHEX_VERSION =
     typeof _COCOCHEX_VERSION__ === "string" ? _COCOCHEX_VERSION__ : "0.0.0";
 
-/*
-    Data schema checker.
-
-    schema={
-        'type': type, // type can be one of: 'string', 'number', 'boolean', 'object', 'array'; an exact value to match; or a custom validator function that takes the value and either returns the validated value or throws an error
-        'multi type': [type1, type2, ...],
-        'list of single type values': [type], // list of values that must all match the specified type
-        'lambda returned value when key exists': x => x === 'condition' ? 'conditional' : null,
-        'default value set by lambda when there is no matching value or key does not exist': [int, str, list, dict, x => x === 'default' ? 'default' : null]
-        'you can': {
-            'nest the schema': int
-        },
-        'multi type with nested structure': [
-            {
-                'whole dict or list that matches the stucture': {
-                    'nested2': str,
-                    'nested3': [str, int]
-                }
-            },
-            'solid value'
-        ]
-    }
-*/
 export default function cocochex(params: any, struct: any, required: string[] = [], _parentKey: string | null = null) {
     const typeTokens = ['string', 'number', 'boolean', 'object', 'array'];
 
@@ -129,7 +106,7 @@ export default function cocochex(params: any, struct: any, required: string[] = 
                 }
 
                 const schema = struct[key];
-                if (isSchemaList(schema) && schema.length && typeof schema[schema.length - 1] === 'function') {
+                if (isSchemaList(schema) && schema.length > 1 && typeof schema[schema.length - 1] === 'function') {
                     params[key] = schema[schema.length - 1]();
                 }
             }

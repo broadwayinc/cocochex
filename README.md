@@ -146,6 +146,25 @@ A single-item schema list validates each item in an input array against that one
 
 If the input is not an array, validation fails.
 
+Edge cases:
+
+- `["string"]` means "must be an array, and every item must be string".
+- `[v => ...]` means "must be an array, and apply this function to every item".
+- `[v => ...]` does not mean default value.
+
+```js
+// Fails: input is not an array
+cocochex({ check: 1 }, { check: [v => `given value is ${v}`] });
+// throws: Type <number> is invalid in "check". Expected a list.
+
+// Passes: function runs for each array item
+cocochex(
+  { check: [1, "Hello", false] },
+  { check: [v => `given value is ${v}`] }
+);
+// => { check: ["given value is 1", "given value is Hello", "given value is false"] }
+```
+
 ### 6. Multi-Type (Union-Like) Schema
 
 A multi-item schema list tries each option until one passes.
@@ -159,12 +178,30 @@ A multi-item schema list tries each option until one passes.
 ]}
 ```
 
+When the input value is an array and the schema is a union of non-list rules
+(for example `["string", "number"]`), each array item is validated against the
+union. So this schema accepts either:
+
+- a single scalar value matching one option, or
+- an array where each item matches at least one option.
+
+```js
+cocochex({ check: 1 }, { check: ["string", "number"] });
+// => { check: 1 }
+
+cocochex({ check: [1, "2"] }, { check: ["string", "number"] });
+// => { check: [1, "2"] }
+
+cocochex({ check: [1, "2", true] }, { check: ["string", "number"] });
+// throws: true is invalid in "check". allowed types or values are: Type<string>, Type<number>.
+```
+
 ### 7. Default Value via Function (Missing Key)
 
 For object properties only:
 
 - when a key is missing
-- and that key's schema is a list whose last item is a function
+- and that key's schema is a list with more than one item whose last item is a function
 
 then that function is called with no arguments and its return value is set as default.
 
@@ -172,6 +209,30 @@ then that function is called with no arguments and its return value is set as de
 {
   createdAt: ["string", () => new Date().toISOString()]
 }
+```
+
+Important distinction:
+
+- `[type1, type2]` means union validation.
+- `[type1, fn]` means union validation with function fallback (and function default when key is missing).
+- `[fn]` means list-item rule only; it does not set a default for missing key.
+
+```js
+// Missing key + [fn] => no default inserted
+cocochex({}, { items: [() => true] });
+// => {}
+
+// Missing key + [type, fn] => default inserted via fn()
+cocochex({}, { check: ["string", v => `setting default value, ignored given value is ${v}`] });
+// => { check: "setting default value, ignored given value is undefined" }
+
+// Existing scalar + [type, fn] => try type first, then fn fallback if type does not match
+cocochex({ check: 1 }, { check: ["string", v => `no match. given value is ${v}`] });
+// => { check: "no match. given value is 1" }
+
+// Existing array + [type, fn] => per-item union behavior
+cocochex({ check: [1, "Hello", false] }, { check: ["string", v => `no match. given value is ${v}`] });
+// => { check: ["no match. given value is 1", "Hello", "no match. given value is false"] }
 ```
 
 ## Required Keys
