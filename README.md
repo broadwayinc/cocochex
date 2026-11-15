@@ -70,14 +70,22 @@ cocochex(params: any, struct: any, required?: string[]): any
 
 Returns the validated (and possibly transformed) value.
 
+The published type declaration also lists a fourth parameter, `_parentKey`. It is
+internal (used to build key paths during recursion) and should not be passed.
+
 ## Important Behavior
 
 - Validation is recursive.
-- Object validation expects plain objects only.
+- Object checks (the `"object"` token and nested object schemas) accept any non-null, non-array object.
   - Arrays are not accepted where `object` is expected.
   - `null` is not accepted as object.
+  - Non-plain objects such as `Date`, `Map`, or class instances **are** accepted.
+- Keys not listed in the schema are left untouched. Keys listed in the schema are optional unless named in `required`.
 - The function mutates object and array values in place when applying validators/defaults.
 - Custom validator functions can return a transformed value or throw an error.
+- Union options are not rolled back. If an option partially runs (for example a
+  validator transforms one field) and then fails, those changes stay on the input
+  while the next option is tried.
 
 ## Schema Reference
 
@@ -88,7 +96,7 @@ Use one of:
 - `"string"`
 - `"number"`
 - `"boolean"`
-- `"object"` (plain object only)
+- `"object"` (any non-null, non-array object)
 - `"array"`
 - `"function"`
 - `"null"`
@@ -102,11 +110,19 @@ Example:
 
 ### 2. Exact Value
 
-Any non-function, non-schema-list value can be used as an exact match.
+Any value that is not a function, an array, or an object can be used as an exact
+match. Matching uses `===`.
 
 ```js
-{ status: "active", retries: 3, enabled: true }
+{ status: "active", retries: 3, enabled: true, token: null }
 ```
+
+Notes:
+
+- Objects are always treated as nested schemas and arrays as schema lists, so they cannot be exact values.
+- The type-token strings (`"string"`, `"null"`, ...) are treated as type checks, not literals.
+- `NaN` never matches, because `NaN !== NaN`.
+- `undefined` cannot be used as a schema value (it throws `Argument "struct" is required.`). Use the `"undefined"` token instead.
 
 ### 3. Custom Validator Function
 
@@ -139,7 +155,8 @@ If the schema node is a function, it receives the current value and must:
 
 ### 5. List of Single-Type/Single-Rule Values
 
-A single-item schema list validates each item in an input array against that one rule.
+A single-item schema list whose item is a type token, a function, or an exact
+value validates each item in an input array against that one rule.
 
 ```js
 { tags: ["string"] }
@@ -147,13 +164,19 @@ A single-item schema list validates each item in an input array against that one
 { ids: [v => String(v)] }
 ```
 
-If the input is not an array, validation fails.
+For these, if the input is not an array, validation fails.
 
 Edge cases:
 
 - `["string"]` means "must be an array, and every item must be string".
 - `[v => ...]` means "must be an array, and apply this function to every item".
 - `[v => ...]` does not mean default value.
+- `[{ ... }]` (a single object schema) follows the union rules in section 6: an
+  array is checked item by item, but a single object that is not in an array is
+  **also** accepted.
+- `[["string"]]` (a list inside a list) accepts the same values as `["string"]`
+  ("an array of strings"), with a more generic error message. It does not mean
+  "an array of arrays of strings".
 
 ```js
 // Fails: input is not an array
@@ -181,9 +204,9 @@ A multi-item schema list tries each option until one passes.
 ]}
 ```
 
-When the input value is an array and the schema is a union of non-list rules
-(for example `["string", "number"]`), each array item is validated against the
-union. So this schema accepts either:
+When the input value is an array and no option is itself a list or the `"array"`
+token (for example `["string", "number"]`), each array item is validated against
+the union. So this schema accepts either:
 
 - a single scalar value matching one option, or
 - an array where each item matches at least one option.
@@ -258,13 +281,28 @@ If a required key is missing, an error is thrown:
 Key "profile[email]" is required.
 ```
 
+Limitations:
+
+- The key must be declared in the schema. Required paths that the schema does not mention are ignored.
+- The parent must be present. If `profile` itself is missing, `profile[email]` is not checked (add `profile` to `required` too).
+- Inside a schema list or union (including arrays of objects such as
+  `users: [{ name: "string" }]`), the "is required" error is replaced by the
+  generic `... is invalid in "users". allowed types or values are: ...` error.
+  Array items share their parent's path (`users[name]`, with no index).
+
 ## Error Style
 
-Typical failures throw strings or validator-thrown errors, for example:
+Built-in failures throw `Error` objects. Example messages:
 
-- `Data schema does not match.`
+- `Data schema does not match:` followed by the input as JSON (an object schema received a non-object)
+- `Type <number> is invalid in "check". Expected a list.`
 - `Type <string> is invalid in "items". Expected a list of Type <number>.`
 - `"foo" is invalid in "value". allowed types or values are: Type<number>, "ok".`
+- `Key "profile[email]" is required.`
+
+Errors thrown by custom validators propagate as-is, except inside a union: there,
+if every option fails, the last validator error's message is re-thrown as a new
+plain `Error` (custom error classes and extra properties are lost).
 
 Recommendation: wrap calls in `try/catch` and normalize errors in your application layer.
 
@@ -320,5 +358,15 @@ import cocochex from "cocochex";
 ```js
 const cocochex = require("cocochex");
 ```
+
+- Browser via CDN (exposes a global `cocochex` function):
+
+```html
+<script src="https://unpkg.com/cocochex"></script>
+```
+
+> In version 1.0.4 and earlier, the CJS build and the CDN global expose `{ default }`
+> instead of the function. Use `require("cocochex").default` or `cocochex.default` there.
+> Newer builds expose the function directly and keep `.default` as an alias for CJS.
 
 Current function signature is intentionally generic (`any`) to allow flexible schemas.
