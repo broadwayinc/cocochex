@@ -1,6 +1,6 @@
 {
   "name": "cocochex",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Tiny, dependency-free schema validator and transformer for plain JavaScript objects.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -23,14 +23,14 @@
   ],
   "type": "module",
   "scripts": {
-      "test": "npm run build && node ./test.js",
-      "typecheck": "tsc --noEmit --project tsconfig.json",
-      "build": "tsup --config tsup.config.mjs"
+    "test": "npm run build && node ./test.js",
+    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "build": "tsup --config tsup.config.mjs"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-      "tsup": "^8.5.0",
-      "typescript": "^5.9.3"
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
   }
 }
